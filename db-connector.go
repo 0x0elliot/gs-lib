@@ -31,10 +31,10 @@ func init() {
 	// Initialize and connect to OpenSearch
 	config := opensearch.Config{
 		Addresses: []string{
-			os.Getenv("OPENSEARCH_URL",	"https://localhost:9200"),
+			os.Getenv("OPENSEARCH_URL"),
 		},
-		Username: os.Getenv("OPENSEARCH_USERNAME", "admin"),
-		Password: os.Getenv("OPENSEARCH_PASSWORD", "admin"),
+		Username: os.Getenv("OPENSEARCH_USERNAME"),
+		Password: os.Getenv("OPENSEARCH_PASSWORD"),
 	}
 
 	transport := http.DefaultTransport.(*http.Transport)

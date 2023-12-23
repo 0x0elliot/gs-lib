@@ -115,6 +115,22 @@ func SaveTask(ctx context.Context, task Task) error {
 	return nil
 }
 
+func SaveTaskResult(ctx context.Context, result Result) error {
+	body, err := json.Marshal(result)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Saving task result for task %s to Opensearch", result.TaskID)
+
+	err = indexEs(ctx, indexName, result.TaskID, body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetTaskResult(ctx context.Context, taskID string) (*Result, error) {
 	log.Printf("Getting task result for task %s from Opensearch", taskID)
 	res, err := project.Es.Get(strings.ToLower(indexName), taskID)

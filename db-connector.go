@@ -1,5 +1,4 @@
-// db-connector.go
-package main
+package gslib
 
 import (
 	"context"

@@ -1,5 +1,4 @@
-package main
-
+package gslib
 // Input represents the user input structure
 type Input struct {
 	URL string `json:"url"`

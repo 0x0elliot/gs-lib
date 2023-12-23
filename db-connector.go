@@ -1,13 +1,11 @@
 package gslib
 
 import (
-	"context"
+	// "context"
 	"encoding/json"
-	"log"
-	"strings"
 
 	"github.com/opensearch-project/opensearch-go"
-	"github.com/opensearch-project/opensearch-go/opensearchapi"
+	// "github.com/opensearch-project/opensearch-go/opensearchapi"
 )
 
 const (
@@ -23,23 +21,23 @@ func init() {
 	})
 }
 
-func saveTask(task Task) error {
+func saveTask(ctx, task Task) error {
 	body, err := json.Marshal(task)
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Index(indexName).DocumentID(task.ID).BodyJson(string(body)).Do(context.Background())
+	_, err = client.Index(indexName).DocumentID(task.ID).BodyJson(string(body)).Do(ctx)
 	return err
 }
 
-func getTaskResult(taskID string) (*TaskResult, error) {
-	res, err := client.Get().Index(indexName).DocumentID(taskID).Do(context.Background())
+func getTaskResult(ctx, taskID string) (*Result, error) {
+	res, err := client.Get().Index(indexName).DocumentID(taskID).Do(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var result TaskResult
+	var result Result
 	err = json.Unmarshal([]byte(res.Body), &result)
 	if err != nil {
 		return nil, err

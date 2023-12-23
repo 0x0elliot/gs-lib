@@ -1,4 +1,4 @@
-module gs-lib
+module github.com/0x0elliot/gs-lib
 
 go 1.21.3
 

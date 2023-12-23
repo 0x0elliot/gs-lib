@@ -10,9 +10,12 @@ type Task struct {
 	URL string `json:"url"`
 }
 
-
 type Result struct {
 	TaskID string `json:"taskID"`
 	SEO    string `json:"seo"`
 	Feedback string `json:"feedback"`
+}
+
+type ResultWrapper struct {
+	Source Result `json:"_source"`
 }

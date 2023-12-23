@@ -11,6 +11,15 @@ func IsValidURL(url string) bool {
 	return urlRegex.MatchString(url)
 }
 
+func IsHexID(id string) bool {
+	hexRegex := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]+$`)
+
+	if !hexRegex.MatchString(id) {
+		return false
+	}
+	return true
+}
+
 func GenerateID() string {
 	return uuid.New().String()
 }

@@ -17,10 +17,6 @@ import (
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 )
 
-const (
-	indexName = "seo_tasks"
-)
-
 type Project struct {
 	Es  *opensearch.Client
 }
@@ -105,10 +101,11 @@ func SaveTask(ctx context.Context, task Task) error {
 		return err
 	}
 
-	log.Printf("Saving task %s to Opensearch", task.ID)
+	log.Printf("[INFO] Saving task %s to Opensearch", task.ID)
 
-	err = indexEs(ctx, indexName, task.ID, body)
+	err = indexEs(ctx, "Tasks", task.ID, body)
 	if err != nil {
+		log.Printf("[ERROR] Error saving task %s to Opensearch: %s", task.ID, err)
 		return err
 	}
 
@@ -116,14 +113,16 @@ func SaveTask(ctx context.Context, task Task) error {
 }
 
 func SaveTaskResult(ctx context.Context, result Result) error {
-	body, err := json.Marshal(result)
+	log.Printf("Saving task result for task %s to Opensearch", result.TaskID)
+
+	// convert to string
+	resultBytes, err := json.Marshal(result)
 	if err != nil {
+		log.Printf("[ERROR] Error marshalling task result for task %s: %s", result.TaskID, err)
 		return err
 	}
 
-	log.Printf("Saving task result for task %s to Opensearch", result.TaskID)
-
-	err = indexEs(ctx, indexName, result.TaskID, body)
+	err = indexEs(ctx, "Results", result.TaskID, resultBytes)
 	if err != nil {
 		return err
 	}
@@ -131,24 +130,43 @@ func SaveTaskResult(ctx context.Context, result Result) error {
 	return nil
 }
 
-func GetTaskResult(ctx context.Context, taskID string) (*Result, error) {
+func GetTaskResult(ctx context.Context, taskID string) (Result, error) {
+	result := Result{}
+
 	log.Printf("Getting task result for task %s from Opensearch", taskID)
-	res, err := project.Es.Get(strings.ToLower(indexName), taskID)
+	res, err := project.Es.Get(strings.ToLower("results"), taskID)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
+
+	if res.IsError() {
+		log.Printf("[ERROR] Error getting task result for task %s from Opensearch: %s", taskID, res.String())
+		return result, errors.New(res.String())
+	}
+
+	if res.StatusCode != 200 {
+		return result, errors.New(fmt.Sprintf("Bad statuscode from database: %d for task %s", res.StatusCode, taskID))
+	}
+
+	defer res.Body.Close()
 
 	respBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Printf("[WARNING] Error reading the response body from Opensearch for task %s: %s", taskID, err)
-		return nil, err
+		return result, err
 	}
 
-	var result Result
-	err = json.Unmarshal(respBody, &result)
+	log.Printf("[INFO] Got openserach response for task %s: %s", taskID, string(respBody))
+
+	resultWrapper := ResultWrapper{}
+
+	err = json.Unmarshal(respBody, &resultWrapper)
 	if err != nil {
-		return nil, err
+		log.Printf("[ERROR] Error parsing the response body from Opensearch for task %s: %s. Raw: %s", taskID, err, respBody)
+		return result, err
 	}
 
-	return &result, nil
+	result = resultWrapper.Source
+
+	return result, nil
 }
